@@ -53,8 +53,8 @@ public class CP1_Client {
 	
 	public static void main(String[] args) {
 		CP1_Client client = null;
-//		File fileToSend = new File("C:/Users/Wong/Dropbox/Academics/50.005 Com Systems Engineering/ComSystems/Assigments/src/SecureFileTransfer/test.stxt");
-		File fileToSend = new File("C:/Users/Wong/Dropbox/Academics/50.005 Com Systems Engineering/ComSystems/Assigments/src/SecureFileTransfer/test2.txt");
+		File fileToSend = new File("C:/Users/Wong/Dropbox/Academics/50.005 Com Systems Engineering/ComSystems/Assigments/src/SecureFileTransfer/test.txt");
+//		File fileToSend = new File("C:/Users/Wong/Dropbox/Academics/50.005 Com Systems Engineering/ComSystems/Assigments/src/SecureFileTransfer/test2.txt");
 
 		
 		try{
@@ -116,6 +116,7 @@ public class CP1_Client {
 //			System.out.println("Message Length: "+eDataByte.length);
 //			System.out.println("File as byte[]: "+Arrays.toString(dataByte));
 //			System.out.println("Encrypted file as byte[]: "+Arrays.toString(eDataByte));
+			System.out.println("Content of file being sent over: "+new String(dataByte));
 			
 			
 			return true;

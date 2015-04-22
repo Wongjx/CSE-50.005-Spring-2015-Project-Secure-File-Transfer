@@ -305,7 +305,8 @@ class clientListenerThread implements Runnable{
 					byte[] dByte = server.concatenateByte(dSplitBytes);
 					
 					System.out.println("Message size: "+messageSize);
-					System.out.println("File received from client: "+Arrays.toString(dByte));
+//					System.out.println("File received from client: "+Arrays.toString(dByte));
+					System.out.println("File contents: "+new String(dByte));
 
 					//TODO do something with byte buffer
 					
