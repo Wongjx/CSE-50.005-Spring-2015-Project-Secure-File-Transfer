@@ -33,6 +33,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 public class Server2 {
 	private ArrayList<Socket> clients;
@@ -298,28 +299,30 @@ class clientListenerThread2 implements Runnable{
 					serverInput.readFully(fileNameBytes);
 					String fileName = new String (fileNameBytes);
 					
-					//Generate AES symKey for client
-					KeyGenerator keyGen = KeyGenerator.getInstance("AES");
-					SecretKey symKey = keyGen.generateKey(); 
-					
-					//Send symmetric key over
-					byte[] encodedKey = symKey.getEncoded();
-					byte[] toServer3 = server.cipher.doFinal(encodedKey);
-					this.serverOutput.writeInt(toServer3.length);
-					this.serverOutput.write(toServer3);
-					
-					 //Create symKey ciphers 
-					 Cipher dcipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
 					 
-					 dcipher.init(Cipher.DECRYPT_MODE, symKey);
 					 
+						//Get secret key from server
 					 int messageSize = serverInput.readInt();		//Read the size of incoming byte message
+					 byte[] byteBuffer = new byte[messageSize];		//Prepare a byte[] buffer of the incoming byte message
+					 serverInput.readFully(byteBuffer);					 //Read clients request for public key certificate
+					 
+					 //Decrypt and get symmetric key
+					 byte[] dByte = server.decrypt(byteBuffer);
+					SecretKey symKey = new SecretKeySpec(dByte, 0, dByte.length, "AES");
+		
+					 //Create symKey ciphers 
+					 Cipher sCipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+					 sCipher.init(Cipher.ENCRYPT_MODE, symKey);
+					
+					 Cipher dCipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+					 dCipher.init(Cipher.DECRYPT_MODE, symKey);
+					 
+					 messageSize = serverInput.readInt();		//Read the size of incoming byte message
 					 System.out.println("Message size: "+messageSize);
 					 
-					 byte[] byteBuffer = new byte[messageSize];		//Prepare a byte[] buffer of the incoming byte message
+					 byteBuffer = new byte[messageSize];		//Prepare a byte[] buffer of the incoming byte message
 					 serverInput.readFully(byteBuffer);					 //Read into byte buffer
-					 
-					 byte[] dByte = dcipher.doFinal(byteBuffer);	//Decrypt message from byteBuffer
+					 dByte = dCipher.doFinal(byteBuffer);	//Decrypt message from byteBuffer
 					 
 					 long endTime = System.currentTimeMillis();
 					 System.out.println("File received from client!");

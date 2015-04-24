@@ -57,8 +57,8 @@ public class CP2_Client {
 //		File fileToSend = new File("C:/Users/Wong/Dropbox/Academics/50.005 Com Systems Engineering/ComSystems/Assigments/src/SecureFileTransfer/test.txt");
 //		File fileToSend = new File("C:/Users/Wong/Dropbox/Academics/50.005 Com Systems Engineering/ComSystems/Assigments/src/SecureFileTransfer/test2.txt");
 //		File fileToSend = new File("C:/Users/Wong/Dropbox/Academics/50.005 Com Systems Engineering/ComSystems/Assigments/src/SecureFileTransfer/test3.txt");
-		File fileToSend = new File("C:/Users/Wong/Dropbox/Academics/50.005 Com Systems Engineering/ComSystems/Assigments/src/SecureFileTransfer/test.txt.txt");
-//		File fileToSend = new File("C:/Users/Wong/Dropbox/Academics/50.005 Com Systems Engineering/ComSystems/Assigments/src/SecureFileTransfer/test1.pdf");
+//		File fileToSend = new File("C:/Users/Wong/Dropbox/Academics/50.005 Com Systems Engineering/ComSystems/Assigments/src/SecureFileTransfer/test.txt.txt");
+		File fileToSend = new File("C:/Users/Wong/Dropbox/Academics/50.005 Com Systems Engineering/ComSystems/Assigments/src/SecureFileTransfer/test1.pdf");
 //		File fileToSend = new File("C:/Users/Wong/Dropbox/Academics/50.005 Com Systems Engineering/ComSystems/Assigments/src/SecureFileTransfer/test2.class");
 //		File fileToSend = new File("C:/Users/Wong/Dropbox/Academics/50.005 Com Systems Engineering/ComSystems/Assigments/src/SecureFileTransfer/SecureFileTransferProjectRelease.pdf");
 
@@ -105,23 +105,25 @@ public class CP2_Client {
 			byte[] nameOfFile=file.getName().getBytes();
 			clientOutput.writeInt(nameOfFile.length);
 			clientOutput.write(nameOfFile);
-
 			
-			//Get secret key from server
-			 int messageSize = clientInput.readInt();		//Read the size of incoming byte message
-			 byte[] byteBuffer = new byte[messageSize];		//Prepare a byte[] buffer of the incoming byte message
-			 clientInput.read(byteBuffer);					 //Read clients request for public key certificate
+			//Generate AES symKey for server
+			KeyGenerator keyGen = KeyGenerator.getInstance("AES");
+			SecretKey symKey = keyGen.generateKey(); 
+			
+			//Send symmetric key over
+			byte[] encodedKey = symKey.getEncoded();
+			byte[] toServer3 = cipher.doFinal(encodedKey);
+			clientOutput.writeInt(toServer3.length);
+			clientOutput.write(toServer3);
+			
+			 //Create symKey ciphers
+			
+			 Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+			 cipher.init(Cipher.ENCRYPT_MODE, symKey);
 			 
-			 //Decrypt and get symmetric key
-			 byte[] dByte = dcipher.doFinal(byteBuffer);
-			SecretKey symKey = new SecretKeySpec(dByte, 0, dByte.length, "AES");
+			 Cipher dcipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+			 dcipher.init(Cipher.DECRYPT_MODE, symKey);
 
-			 //Create symKey ciphers 
-			 Cipher sCipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-			 sCipher.init(Cipher.ENCRYPT_MODE, symKey);
-			
-			 Cipher dCipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-			 dCipher.init(Cipher.DECRYPT_MODE, symKey);
 			 
 			//Read bytes from file
 	        FileInputStream fis;
@@ -130,14 +132,12 @@ public class CP2_Client {
 	        fis.read(dataByte);
 	        fis.close();
 	        
-	        byte[] eDataByte = sCipher.doFinal(dataByte);
-	        byte[] dDataByte = dCipher.doFinal(eDataByte);
+	        byte[] eDataByte = cipher.doFinal(dataByte);
 			
 			//send file over to server
 			clientOutput.writeInt(eDataByte.length);
 			System.out.println("Size of orginal file: "+dataByte.length);
 			System.out.println("Size of encrypted message: "+eDataByte.length);
-			System.out.println("Size of decrypted message: "+dDataByte.length);
 			clientOutput.write(eDataByte);
 			
 //			System.out.println("Encrypted file as byte[]: "+Arrays.toString(eDataByte));
