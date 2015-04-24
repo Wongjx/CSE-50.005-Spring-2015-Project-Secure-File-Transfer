@@ -5,6 +5,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.ServerSocket;
@@ -12,7 +13,6 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
@@ -279,6 +279,13 @@ class clientListenerThread implements Runnable{
 					//Read start time of FTP operation
 					long startTime = serverInput.readLong();
 					
+					//Read name of file 
+					int nameSize =serverInput.readInt();
+					byte[] fileNameBytes = new byte[nameSize];
+					serverInput.readFully(fileNameBytes);
+					String fileName = new String (fileNameBytes);
+					
+					
 					//Method 1: Read as a single byte[]
 //					//Read from client
 //					int messageSize = serverInput.readInt();		
@@ -303,20 +310,20 @@ class clientListenerThread implements Runnable{
 						serverInput.read(temp);		//read block into byte buffer
 						temp=server.decrypt(temp);	//decrypt block
 						outputStream.write(temp);	//write decrypted bytes into another byte buffer for the file
-						System.out.println("Block contents: "+new String(temp));
 						
 					}
 					
-					byte[] out = outputStream.toByteArray( );
+					byte[] outBytes = outputStream.toByteArray( );
 					long endTime = System.currentTimeMillis();
-					System.out.println("File received from client!");
 					System.out.println("Time taken for operation :"+(endTime-startTime));
 					
 //					System.out.println("Message size: "+messageSize);
 //					System.out.println("File received from client: "+Arrays.toString(dByte));
-
-					//TODO do something with byte buffer
 					
+					System.out.println("File name="+fileName);
+					 FileOutputStream out = new FileOutputStream("C:/Users/Wong/Desktop/"+fileName);
+					 out.write(outBytes);
+					 out.close();
 					
 					
 					break;

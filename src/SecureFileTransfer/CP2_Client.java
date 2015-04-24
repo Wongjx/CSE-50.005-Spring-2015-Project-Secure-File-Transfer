@@ -59,8 +59,8 @@ public class CP2_Client {
 //		File fileToSend = new File("C:/Users/Wong/Dropbox/Academics/50.005 Com Systems Engineering/ComSystems/Assigments/src/SecureFileTransfer/test3.txt");
 //		File fileToSend = new File("C:/Users/Wong/Dropbox/Academics/50.005 Com Systems Engineering/ComSystems/Assigments/src/SecureFileTransfer/test.txt.txt");
 //		File fileToSend = new File("C:/Users/Wong/Dropbox/Academics/50.005 Com Systems Engineering/ComSystems/Assigments/src/SecureFileTransfer/test1.pdf");
-//		File fileToSend = new File("C:/Users/Wong/Dropbox/Academics/50.005 Com Systems Engineering/ComSystems/Assigments/src/SecureFileTransfer/test2.class");
-		File fileToSend = new File("C:/Users/Wong/Dropbox/Academics/50.005 Com Systems Engineering/ComSystems/Assigments/src/SecureFileTransfer/SecureFileTransferProjectRelease.pdf");
+		File fileToSend = new File("C:/Users/Wong/Dropbox/Academics/50.005 Com Systems Engineering/ComSystems/Assigments/src/SecureFileTransfer/test2.class");
+//		File fileToSend = new File("C:/Users/Wong/Dropbox/Academics/50.005 Com Systems Engineering/ComSystems/Assigments/src/SecureFileTransfer/SecureFileTransferProjectRelease.pdf");
 
 
 		
@@ -100,6 +100,12 @@ public class CP2_Client {
 			
 			//Send start time over
 			clientOutput.writeLong(System.currentTimeMillis());
+			
+			//Send filename over
+			byte[] nameOfFile=file.getName().getBytes();
+			clientOutput.writeInt(nameOfFile.length);
+			clientOutput.write(nameOfFile);
+
 			
 			//Get secret key from server
 			 int messageSize = clientInput.readInt();		//Read the size of incoming byte message

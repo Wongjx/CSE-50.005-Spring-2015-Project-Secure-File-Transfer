@@ -5,6 +5,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.ServerSocket;
@@ -291,6 +292,12 @@ class clientListenerThread2 implements Runnable{
 					//Read start time of FTP operation
 					long startTime = serverInput.readLong();
 					
+					//Read name of file 
+					int nameSize =serverInput.readInt();
+					byte[] fileNameBytes = new byte[nameSize];
+					serverInput.readFully(fileNameBytes);
+					String fileName = new String (fileNameBytes);
+					
 					//Generate AES symKey for client
 					KeyGenerator keyGen = KeyGenerator.getInstance("AES");
 					SecretKey symKey = keyGen.generateKey(); 
@@ -310,7 +317,7 @@ class clientListenerThread2 implements Runnable{
 					 System.out.println("Message size: "+messageSize);
 					 
 					 byte[] byteBuffer = new byte[messageSize];		//Prepare a byte[] buffer of the incoming byte message
-					 serverInput.read(byteBuffer);					 //Read into byte buffer
+					 serverInput.readFully(byteBuffer);					 //Read into byte buffer
 					 
 					 byte[] dByte = dcipher.doFinal(byteBuffer);	//Decrypt message from byteBuffer
 					 
@@ -321,6 +328,11 @@ class clientListenerThread2 implements Runnable{
 //					System.out.println("File received from client: "+Arrays.toString(dByte));
 //					System.out.println("File contents: "+new String(dByte));
 					
+					 System.out.println("File name="+fileName);
+					 FileOutputStream out = new FileOutputStream("C:/Users/Wong/Desktop/"+fileName);
+					 out.write(dByte);
+					 out.close();
+					 
 					
 					break;
 					

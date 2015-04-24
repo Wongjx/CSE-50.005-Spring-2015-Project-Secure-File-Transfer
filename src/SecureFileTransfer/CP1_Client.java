@@ -98,15 +98,20 @@ public class CP1_Client {
 			System.out.println("AP succeed!");
 			clientOutput.writeInt(1);	//Tell server AP succeeded
 			
+			//Read bytes from file
+			FileInputStream fis;
+			fis = new FileInputStream(file);
+			byte[] dataByte = new byte[(int) file.length()];
+			fis.read(dataByte);
+			fis.close();
+			
 			//Send start time over
 			clientOutput.writeLong(System.currentTimeMillis());
 			
-			//Read bytes from file
-	        FileInputStream fis;
-	        fis = new FileInputStream(file);
-	        byte[] dataByte = new byte[(int) file.length()];
-	        fis.read(dataByte);
-	        fis.close();
+			//Send filename over
+			byte[] nameOfFile=file.getName().getBytes();
+			clientOutput.writeInt(nameOfFile.length);
+			clientOutput.write(nameOfFile);
 	        
 			byte[][] splitBytes = splitBytes(dataByte);			//split bytes into blocks of 117 bytes each
 			
