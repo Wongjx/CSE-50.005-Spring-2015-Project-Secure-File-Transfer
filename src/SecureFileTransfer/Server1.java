@@ -321,7 +321,7 @@ class clientListenerThread implements Runnable{
 //					System.out.println("File received from client: "+Arrays.toString(dByte));
 					
 					System.out.println("File name="+fileName);
-					 FileOutputStream out = new FileOutputStream("C:/Users/Wong/Desktop/"+fileName);
+					 FileOutputStream out = new FileOutputStream("C:/Users/Wong/Desktop/Server/"+fileName);
 					 out.write(outBytes);
 					 out.close();
 					
