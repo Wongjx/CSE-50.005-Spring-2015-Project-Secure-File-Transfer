@@ -15,6 +15,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PublicKey;
+import java.security.SecureRandom;
 import java.security.SignatureException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -53,8 +54,14 @@ public class CP1_Client {
 	
 	public static void main(String[] args) {
 		CP1_Client client = null;
-		File fileToSend = new File("C:/Users/Wong/Dropbox/Academics/50.005 Com Systems Engineering/ComSystems/Assigments/src/SecureFileTransfer/test.txt");
+//		File fileToSend = new File("C:/Users/Wong/Dropbox/Academics/50.005 Com Systems Engineering/ComSystems/Assigments/src/SecureFileTransfer/test.txt");
 //		File fileToSend = new File("C:/Users/Wong/Dropbox/Academics/50.005 Com Systems Engineering/ComSystems/Assigments/src/SecureFileTransfer/test2.txt");
+//		File fileToSend = new File("C:/Users/Wong/Dropbox/Academics/50.005 Com Systems Engineering/ComSystems/Assigments/src/SecureFileTransfer/test3.txt");
+//		File fileToSend = new File("C:/Users/Wong/Dropbox/Academics/50.005 Com Systems Engineering/ComSystems/Assigments/src/SecureFileTransfer/CP_1 Sequence Diagram.jpg");
+//		File fileToSend = new File("C:/Users/Wong/Dropbox/Academics/50.005 Com Systems Engineering/ComSystems/Assigments/src/SecureFileTransfer/FTP_diagrams.vpp");
+//		File fileToSend = new File("C:/Users/Wong/Dropbox/Academics/50.005 Com Systems Engineering/ComSystems/Assigments/src/SecureFileTransfer/test.txt.txt");
+		File fileToSend = new File("C:/Users/Wong/Dropbox/Academics/50.005 Com Systems Engineering/ComSystems/Assigments/src/SecureFileTransfer/test1.pdf");
+//		File fileToSend = new File("C:/Users/Wong/Dropbox/Academics/50.005 Com Systems Engineering/ComSystems/Assigments/src/SecureFileTransfer/test2.class");
 
 		
 		try{
@@ -68,7 +75,8 @@ public class CP1_Client {
 			client.endSeisson();
 			
 		}catch(Exception e){
-			System.out.println("Error creating client socket: "+e.getMessage());
+			System.out.println("Error: "+e.getMessage());
+			e.printStackTrace();
 		}
 	}
 	
@@ -88,8 +96,10 @@ public class CP1_Client {
 	public boolean sendFile(File file) throws InvalidKeyException, ClassNotFoundException, CertificateException, NoSuchAlgorithmException, NoSuchProviderException, SignatureException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException{
 		if(startAP()){
 			System.out.println("AP succeed!");
-			clientOutput.writeInt(1);
-			//TODO Encrypt file and send file over
+			clientOutput.writeInt(1);	//Tell server AP succeeded
+			
+			//Send start time over
+			clientOutput.writeLong(System.currentTimeMillis());
 			
 			//Read bytes from file
 	        FileInputStream fis;
@@ -98,27 +108,38 @@ public class CP1_Client {
 	        fis.read(dataByte);
 	        fis.close();
 	        
-	        
 			byte[][] splitBytes = splitBytes(dataByte);			//split bytes into blocks of 117 bytes each
 			
+//			//Encrypt each block
+//			byte[][] dSplitBytes= new byte[splitBytes.length][];
+//			for (int i=0;i<splitBytes.length;i++){
+//				dSplitBytes[i]=encrypt(splitBytes[i]);
+//			}
+//			byte[] eDataByte = concatenateByte(dSplitBytes);
+//			
+//			//send file over to server
+//			clientOutput.writeInt(eDataByte.length);
+//			clientOutput.write(eDataByte);
+			
+			//Method 2: Encrypt and send as blocks of size 128 bytes
 			//Encrypt each block
-			byte[][] dSplitBytes= new byte[splitBytes.length][];
 			for (int i=0;i<splitBytes.length;i++){
-				dSplitBytes[i]=encrypt(splitBytes[i]);
+				byte[] temp =encrypt(splitBytes[i]);
+				clientOutput.writeInt(temp.length);
+				clientOutput.write(temp);
+//				System.out.println("Block being sent: "+new String(temp));
 			}
 			
-			byte[] eDataByte = concatenateByte(dSplitBytes);
+			//Signal end of file send
+			clientOutput.writeInt(-1);
 			
-			//send file over to server
-			clientOutput.writeInt(eDataByte.length);
-			clientOutput.write(eDataByte);
 			
-//			System.out.println("Message Length: "+eDataByte.length);
 //			System.out.println("File as byte[]: "+Arrays.toString(dataByte));
 //			System.out.println("Encrypted file as byte[]: "+Arrays.toString(eDataByte));
-			System.out.println("Content of file being sent over: "+new String(dataByte));
 			
-			
+//			System.out.println("Message Length: "+eDataByte.length);
+			System.out.println("Size of file: "+dataByte.length);
+//			System.out.println("Content of file being sent over: "+new String(dataByte));
 			return true;
 		}else{
 			System.out.println("Ap failed!");
@@ -220,9 +241,9 @@ public class CP1_Client {
 		 return cipher;
 	}
 	
-	public void endSeisson(){
+	public void endSeisson() throws IOException{
 		this.NonceSet.clear();
-//		this.socket.close();
+		this.socket.close();
 		
 		
 	}
@@ -249,7 +270,7 @@ public class CP1_Client {
 //		symKey = keyGen.generateKey(); 
 		
 		byte[] nonce;
-		Random ran = new Random();
+		SecureRandom ran = new SecureRandom();
 		do{
 			int nonceGen = ran.nextInt();
 			ByteBuffer b = ByteBuffer.allocate(4);
